@@ -7,6 +7,7 @@ import {
   useNavigate,
   useLocation,
   Navigate,
+  useParams,
 } from "react-router-dom";
 import { BottomNavigation, BottomNavigationAction, Paper } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
@@ -36,12 +37,17 @@ import SupportMessagesScreen from "../pages/SupportMessagesScreen";
 import FaqScreen from "../pages/FaqScreen";
 import LogoutScreen from "../pages/LogoutScreen";
 
-import { useParams } from "react-router-dom";
-
+// ✅ Wrapper per parametri dinamici
 const MedalTypeShopScreenWrapper = () => {
   const { medalType } = useParams<{ medalType: string }>();
-  if (!medalType) return null;
+  if (!medalType) return <div>Tipo medaglia non valido</div>;
   return <MedalTypeShopScreen medalType={medalType} />;
+};
+
+const TrophyTypeScreenWrapper = () => {
+  const { trophyType } = useParams<{ trophyType: string }>();
+  if (!trophyType) return <div>Tipo coppa non valido</div>;
+  return <TrophyTypeScreen trophyType={trophyType} />;
 };
 
 const TabNavigator = () => {
@@ -79,19 +85,24 @@ const TabNavigator = () => {
         <Route path="events/completed" element={<CompletedEventListScreen />} />
         <Route path="events/animation" element={<EventAnimationScreen />} />
 
+        <Route path="shop" element={<ShopScreen />} />
         <Route
           path="shop/type/:medalType"
-          element={<Route path="" element={<MedalTypeShopScreenWrapper />} />}
+          element={<MedalTypeShopScreenWrapper />}
         />
+
         <Route path="medaglie" element={<MedalListScreen />} />
         <Route
           path="medaglie/detail/:medalId"
           element={<MedalDetailScreen />}
         />
         <Route path="medaglie/type/:medalType" element={<MedalTypeScreen />} />
-        <Route path="coppe/type/:medalType" element={<TrophyTypeScreen />} />
-        <Route path="shop" element={<ShopScreen />} />
-        <Route path="shop/type/:medalType" element={<MedalTypeShopScreen />} />
+
+        <Route
+          path="coppe/type/:trophyType"
+          element={<TrophyTypeScreenWrapper />}
+        />
+
         <Route path="wallet" element={<WalletScreen />} />
         <Route path="user/:userId" element={<PublicUserProfileScreen />} />
         <Route path="user/:userId/medals" element={<PublicMedalListScreen />} />
