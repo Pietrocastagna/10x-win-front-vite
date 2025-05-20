@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import AdyenCheckout from "@adyen/adyen-web"; // ✅ Import diretto
+import AdyenCheckout from "@adyen/adyen-web";
 import "@adyen/adyen-web/dist/adyen.css";
 
 const AdyenCheckoutPage: React.FC = () => {
@@ -10,10 +10,12 @@ const AdyenCheckoutPage: React.FC = () => {
   const query = new URLSearchParams(location.search);
   const sessionId = query.get("sessionId");
   const sessionData = query.get("sessionData");
+  const clientKey =
+    query.get("clientKey") || import.meta.env.VITE_ADYEN_CLIENT_KEY!;
 
   useEffect(() => {
     const loadCheckout = async () => {
-      if (!sessionId || !sessionData) {
+      if (!sessionId || !sessionData || !clientKey) {
         console.warn("⚠️ Parametri Adyen mancanti.");
         navigate("/payment-failed");
         return;
@@ -21,18 +23,18 @@ const AdyenCheckoutPage: React.FC = () => {
 
       try {
         const checkout = await AdyenCheckout({
-          environment: "test", // Cambia in 'live' in produzione
-          clientKey: import.meta.env.VITE_ADYEN_CLIENT_KEY!,
+          environment: "test",
+          clientKey,
           session: {
             id: sessionId,
-            sessionData: sessionData,
+            sessionData,
           },
           showPayButton: true,
-          onPaymentCompleted: (result, _component) => {
+          onPaymentCompleted: (result) => {
             console.log("✅ Pagamento completato:", result);
             navigate("/payment-success");
           },
-          onError: (error, _component) => {
+          onError: (error) => {
             console.error("❌ Errore Adyen:", error);
             navigate("/payment-failed");
           },
@@ -40,16 +42,13 @@ const AdyenCheckoutPage: React.FC = () => {
 
         checkout.create("dropin").mount("#adyen-container");
       } catch (err) {
-        console.error(
-          "❌ Errore durante il caricamento di Adyen Checkout:",
-          err
-        );
+        console.error("❌ Errore caricamento Adyen Checkout:", err);
         navigate("/payment-failed");
       }
     };
 
     loadCheckout();
-  }, [sessionId, sessionData, navigate]);
+  }, [sessionId, sessionData, clientKey, navigate]);
 
   return (
     <div style={styles.wrapper}>

@@ -1,5 +1,3 @@
-// 📁 src/components/AdyenDropIn/AdyenDropIn.tsx
-
 import AdyenCheckout from "@adyen/adyen-web";
 import "@adyen/adyen-web/dist/adyen.css";
 import { useEffect } from "react";
@@ -8,16 +6,20 @@ interface Props {
   sessionId: string;
   sessionData: string;
   clientKey: string;
+  onComplete?: (result: any) => void;
+  onError?: (error: any) => void;
 }
 
 const AdyenDropIn: React.FC<Props> = ({
   sessionId,
   sessionData,
   clientKey,
+  onComplete,
+  onError,
 }) => {
   useEffect(() => {
     if (!sessionId || !sessionData || !clientKey) return;
-    if (document.getElementById("adyen-initialized")) return; // ✅ evita doppio mount
+    if (document.getElementById("adyen-initialized")) return;
 
     const container = document.createElement("div");
     container.id = "adyen-initialized";
@@ -41,20 +43,23 @@ const AdyenDropIn: React.FC<Props> = ({
           },
           onPaymentCompleted: (res) => {
             console.log("✅ Pagamento completato:", res);
+            onComplete?.(res);
           },
           onError: (err) => {
             console.error("❌ Errore pagamento:", err);
+            onError?.(err);
           },
         });
 
         checkout.create("dropin").mount("#adyen-initialized");
       } catch (error) {
         console.error("❌ Errore inizializzazione Adyen:", error);
+        onError?.(error);
       }
     };
 
     setupAdyen();
-  }, [sessionId, sessionData, clientKey]);
+  }, [sessionId, sessionData, clientKey, onComplete, onError]);
 
   return <div id="dropin-container" />;
 };
