@@ -16,10 +16,17 @@ const AdyenDropIn: React.FC<Props> = ({
   clientKey,
 }) => {
   useEffect(() => {
+    if (!sessionId || !sessionData || !clientKey) return;
+    if (document.getElementById("adyen-initialized")) return; // ✅ evita doppio mount
+
+    const container = document.createElement("div");
+    container.id = "adyen-initialized";
+    document.getElementById("dropin-container")?.appendChild(container);
+
     const setupAdyen = async () => {
       try {
         const checkout = await AdyenCheckout({
-          environment: "test", // ✅ necessario per evitare l'errore
+          environment: "test",
           clientKey,
           session: {
             id: sessionId,
@@ -40,12 +47,9 @@ const AdyenDropIn: React.FC<Props> = ({
           },
         });
 
-        checkout.create("dropin").mount("#dropin-container");
+        checkout.create("dropin").mount("#adyen-initialized");
       } catch (error) {
-        console.error(
-          "❌ Errore durante l'inizializzazione di AdyenCheckout:",
-          error
-        );
+        console.error("❌ Errore inizializzazione Adyen:", error);
       }
     };
 

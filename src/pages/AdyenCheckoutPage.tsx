@@ -1,10 +1,9 @@
-// 📁 src/pages/AdyenCheckoutPage.tsx
 import React, { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import * as AdyenWeb from "@adyen/adyen-web"; // ✅ Import corretto per Adyen
+import AdyenCheckout from "@adyen/adyen-web"; // ✅ Import diretto
 import "@adyen/adyen-web/dist/adyen.css";
 
-const AdyenCheckoutPage = () => {
+const AdyenCheckoutPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -14,23 +13,26 @@ const AdyenCheckoutPage = () => {
 
   useEffect(() => {
     const loadCheckout = async () => {
-      if (!sessionId || !sessionData) return;
+      if (!sessionId || !sessionData) {
+        console.warn("⚠️ Parametri Adyen mancanti.");
+        navigate("/payment-failed");
+        return;
+      }
 
       try {
-        // ✅ Fix TypeScript: utilizza 'as any' per bypassare il problema con 'new'
-        const checkout: any = await new (AdyenWeb as any).AdyenCheckout({
-          environment: "test",
+        const checkout = await AdyenCheckout({
+          environment: "test", // Cambia in 'live' in produzione
           clientKey: import.meta.env.VITE_ADYEN_CLIENT_KEY!,
           session: {
             id: sessionId,
-            sessionData,
+            sessionData: sessionData,
           },
           showPayButton: true,
-          onPaymentCompleted: (result: any, component: any) => {
+          onPaymentCompleted: (result, _component) => {
             console.log("✅ Pagamento completato:", result);
             navigate("/payment-success");
           },
-          onError: (error: any, component: any) => {
+          onError: (error, _component) => {
             console.error("❌ Errore Adyen:", error);
             navigate("/payment-failed");
           },
@@ -38,7 +40,11 @@ const AdyenCheckoutPage = () => {
 
         checkout.create("dropin").mount("#adyen-container");
       } catch (err) {
-        console.error("Errore caricamento Adyen:", err);
+        console.error(
+          "❌ Errore durante il caricamento di Adyen Checkout:",
+          err
+        );
+        navigate("/payment-failed");
       }
     };
 
@@ -47,7 +53,7 @@ const AdyenCheckoutPage = () => {
 
   return (
     <div style={styles.wrapper}>
-      <h2 style={styles.title}>Pagamento</h2>
+      <h2 style={styles.title}>Completa il pagamento</h2>
       <div id="adyen-container" style={styles.container} />
     </div>
   );
@@ -57,7 +63,7 @@ const styles = {
   wrapper: {
     padding: "2rem",
     backgroundColor: "#121212",
-    color: "#fff",
+    color: "#ffffff",
     minHeight: "100vh",
   },
   title: {
