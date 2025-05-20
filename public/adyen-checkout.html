@@ -1,4 +1,3 @@
-<!-- 📁 public/adyen-checkout.html -->
 <!DOCTYPE html>
 <html lang="it">
   <head>
@@ -35,23 +34,40 @@
       }
 
       async function initCheckout() {
-        const checkout = await AdyenCheckout({
-          environment: "test",
-          clientKey: clientKey,
-          session: {
-            id: sessionId,
-            sessionData: sessionData,
-          },
-          showPayButton: true,
-          onPaymentCompleted: (result) => {
-            window.location.href = "https://10x-win.com/payment-success"; // oppure schema URL
-          },
-          onError: (err) => {
-            alert("Errore: " + err.message);
-          },
-        });
+        try {
+          const checkout = await AdyenCheckout({
+            environment: "test",
+            clientKey,
+            session: {
+              id: sessionId,
+              sessionData,
+            },
+            showPayButton: true,
+            onPaymentCompleted: (result) => {
+              // comunica al parent se è in popup
+              if (window.opener) {
+                window.opener.postMessage({ status: "success", result }, "*");
+                window.close();
+              } else {
+                // fallback redirect
+                window.location.href = "https://10x-win.com/payment-success";
+              }
+            },
+            onError: (err) => {
+              if (window.opener) {
+                window.opener.postMessage({ status: "error", error: err }, "*");
+                window.close();
+              } else {
+                alert("Errore: " + err.message);
+              }
+            },
+          });
 
-        checkout.create("dropin").mount("#dropin-container");
+          checkout.create("dropin").mount("#dropin-container");
+        } catch (e) {
+          console.error("❌ Errore inizializzazione Adyen:", e);
+          alert("Errore durante l'inizializzazione del pagamento.");
+        }
       }
 
       initCheckout();
