@@ -1,0 +1,60 @@
+<!-- 📁 public/adyen-checkout.html -->
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Pagamento Adyen</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/5.47.0/adyen.css"
+    />
+    <script src="https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/5.47.0/adyen.js"></script>
+    <style>
+      body {
+        background: #000;
+        margin: 0;
+        padding: 20px;
+        font-family: sans-serif;
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="dropin-container"></div>
+
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const sessionId = urlParams.get("sessionId");
+      const sessionData = urlParams.get("sessionData");
+      const clientKey = urlParams.get("clientKey");
+
+      if (!sessionId || !sessionData || !clientKey) {
+        document.body.innerHTML = "⚠️ Parametri mancanti.";
+        throw new Error("Parametri mancanti");
+      }
+
+      async function initCheckout() {
+        const checkout = await AdyenCheckout({
+          environment: "test",
+          clientKey: clientKey,
+          session: {
+            id: sessionId,
+            sessionData: sessionData,
+          },
+          showPayButton: true,
+          onPaymentCompleted: (result) => {
+            window.location.href = "https://10x-win.com/payment-success"; // oppure schema URL
+          },
+          onError: (err) => {
+            alert("Errore: " + err.message);
+          },
+        });
+
+        checkout.create("dropin").mount("#dropin-container");
+      }
+
+      initCheckout();
+    </script>
+  </body>
+</html>
