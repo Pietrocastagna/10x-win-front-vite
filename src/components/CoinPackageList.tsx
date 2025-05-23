@@ -19,7 +19,7 @@ import AdyenDropIn from "./AdyenDropIn/AdyenDropIn"; // ✅ importa il component
 import { API_BASE_URL } from "../config";
 
 interface CoinPackage {
-  _id: string;
+  uuid: string;
   name: string;
   coinAmount: number;
   priceEUR: number;
@@ -62,7 +62,7 @@ const CoinPackageList: React.FC = () => {
       const token = localStorage.getItem("authToken");
       const res = await axios.post(
         `${API_BASE_URL}/payments/coin`,
-        { packageId: selectedPackage._id },
+        { packageId: selectedPackage.uuid },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -88,9 +88,9 @@ const CoinPackageList: React.FC = () => {
       ) : (
         <Grid container spacing={3}>
           {packages.map((pkg) => (
-            <Grid item xs={12} sm={6} md={4} key={pkg._id}>
+            <Grid item xs={12} sm={6} md={4} key={pkg.uuid}>
               <CoinPackageCard
-                pkg={pkg}
+                pkg={{ ...pkg, _id: pkg.uuid }}
                 onBuy={() => setSelectedPackage(pkg)}
               />
             </Grid>
